@@ -2,7 +2,30 @@ import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.util.Scanner; // Import the Scanner class to read text files
 
-//This will contain all the basic i/o or other functions
+class InputSource {
+   private String source;
+   private int counter = -1;
+   public InputSource(String source) {
+      this.source = source;
+   }
+
+   public boolean isEOF() {
+      return (counter == source.length()-1);
+   }
+
+   public void retract() { counter -= 1; }
+
+   public char getCurrChar() {
+      if(counter > 0) return source.charAt(counter);
+      return ' ';
+   }
+
+   public char nextChar() {
+      counter += 1;
+      return source.charAt(counter);
+   }
+}
+
 public class utils {
    public static String readfile(String pathToFile) {
       String res = "";

@@ -2,81 +2,155 @@ import java.util.ArrayList; // import the ArrayList class
 
 public class lex {
 
-   private String inputProgram = null;
+   private InputSource inputProgram = null;
    private ArrayList <token> tokens = new ArrayList<token>();
 
    public lex(String pathToFile) {
-      inputProgram = utils.readfile(pathToFile);
+      inputProgram = new InputSource(utils.readfile(pathToFile));
    }
 
-   private boolean popToken() {
-      try {
-         tokens.remove(tokens.size()-1);
-      } catch (Exception e) {
-         return false;
-      } return true;
+   private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
+   private boolean isAlphabet(char c) {return ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));}
+
+   private token getString() {
+      int state = 0;
+      String theString = ""; //to store string
+      while(!inputProgram.isEOF()) {
+         switch(state) {
+            case 0: {
+               char c = inputProgram.getCurrChar();
+               theString += c; //to store string
+               if(c == '"') state = 1;
+               else return null;
+            } break;
+
+            case 1: {
+               char c = inputProgram.nextChar();
+               theString += c; //to store string
+               if(isAlphabet(c)) state = 2;
+               else return null;
+            } break;
+
+            case 2: {
+               char c = inputProgram.nextChar();
+               theString += c; //to store string
+               if(isAlphabet(c) || isDigit(c)) state = 2;
+               else if(c == '"') state = 3;
+               else return null;
+            } break;
+
+            case 3: { return new token(TOKEN_TYPE.SL,theString); }
+            default: { return null; }
+         }
+      } return null;
    }
 
-   private void pushToken(token ct , token pt) {
-      pt.type = ct.type; pt.data = ct.data; //setting up prev token
-      tokens.add(new token(ct.type,ct.data)); //pushing to tokens list
+   private token getOperator() {
+      int state = 0;
+      while(!inputProgram.isEOF()) {
+         switch(state) {
+            case 0: {
+               char c = inputProgram.getCurrChar();
+               if(c == '<') state = 1;
+               else if(c == '=') state = 5;
+               else if(c == '>') state = 8;
+               else if(c == ')') state = 11;
+               else if(c == '(') state = 12;
+               else if(c == '{') state = 13;
+               else if(c == '}') state = 14;
+               else if(c == ';') state = 15;
+               else if(c == '+') state = 16;
+               else if(c == '-') state = 17;
+               else if(c == '/') state = 18;
+               else if(c == '*') state = 19;
+            } break;
 
-      //resetting the currentToken
-      ct.type = TOKEN_TYPE.WHITESPACE;
-      ct.data = "";
+            case 1: {
+               char c = inputProgram.nextChar();
+               if(c == '=') state = 2;
+               else if(c == '>') state = 3;
+               else state = 4;
+            } break;
+
+            case 2: { return new token(TOKEN_TYPE.RO,"LE"); }
+            case 3: { return new token(TOKEN_TYPE.RO,"NE"); }
+
+            case 4: {
+               inputProgram.retract();
+               return new token(TOKEN_TYPE.RO,"LT");
+            }
+
+            case 5: {
+               char c = inputProgram.nextChar();
+               if(c == '=') state = 6;
+               else state = 7;
+            } break;
+
+            case 6: {  return new token(TOKEN_TYPE.RO,"EQ"); }
+
+            case 7: {
+               inputProgram.retract();
+               return new token(TOKEN_TYPE.OO,"AS");
+            }
+
+            case 8: {
+               char c = inputProgram.nextChar();
+               if(c == '=') state = 9;
+               else state = 10;
+            } break;
+
+            case 9: { return new token(TOKEN_TYPE.RO,"GE"); }
+
+            case 10: {
+               inputProgram.retract();
+               return new token(TOKEN_TYPE.RO,"GT");
+            }
+
+            case 11: { return new token(TOKEN_TYPE.OO,"CP"); }
+            case 12: { return new token(TOKEN_TYPE.OO,"OP"); }
+            case 13: { return new token(TOKEN_TYPE.OO,"OB"); }
+            case 14: { return new token(TOKEN_TYPE.OO,"CB"); }
+            case 15: { return new token(TOKEN_TYPE.OO,"TR"); }
+
+            case 16: { return new token(TOKEN_TYPE.AO,"AD"); }
+            case 17: { return new token(TOKEN_TYPE.AO,"SB"); }
+            case 18: { return new token(TOKEN_TYPE.AO,"DV"); }
+            case 19: { return new token(TOKEN_TYPE.AO,"ML"); }
+
+            default: { return null; }
+         }
+      } return null;
    }
-
-   //string -> keyword
-   //x -> identifier
 
    public void parse() {
-      token ct = new token(TOKEN_TYPE.WHITESPACE,""); //current token
-      token pt = new token(TOKEN_TYPE.WHITESPACE,""); //prev token
-      for(char currChar : inputProgram.toCharArray()) {
-         switch(currChar) {
-
-            case '=': {
-
-               //TODO: This is here error handling for more then one assignments or eq
-               if(pt.type == TOKEN_TYPE.ASSIGNMENT || (pt.type == TOKEN_TYPE.ASSIGNMENT && pt.type == TOKEN_TYPE.EQ)) { 
-                  System.out.println("Unknow lexme: " + pt.data);
-               } else if(pt.type == TOKEN_TYPE.EQ && ct.type == TOKEN_TYPE.WHITESPACE) {
-                  ct.type = TOKEN_TYPE.ASSIGNMENT;
-                  ct.data += currChar;
-                  ct.data += currChar;
-                  popToken(); //this will pop if the EQ is pushed because now = has become ==
-                  pushToken(ct,pt);
-               } else if(ct.type != TOKEN_TYPE.EQ) {
-                  ct.type = TOKEN_TYPE.EQ;
-                  ct.data += currChar;
-                  pushToken(ct,pt);
-               }
-            } break;
-
+      token ct = new token();
+      while(!inputProgram.isEOF()) {
+         switch(inputProgram.nextChar()) {
+            case '<':
+            case '=':
+            case '>':
+            case '+':
+            case '-':
+            case '*':
+            case '/':
+            case '(':
+            case ')':
+            case '{':
+            case '}':
             case ';': {
-               ct.type = TOKEN_TYPE.TERMINATOR;
-               ct.data += currChar; 
-               pushToken(ct,pt);
-            } break;
-
-            case '"': {
-               if(ct.type != TOKEN_TYPE.STRING_LITERAL) {
-                  ct.type = TOKEN_TYPE.STRING_LITERAL;
-               } else if(ct.type == TOKEN_TYPE.STRING_LITERAL) {
-                 pushToken(ct,pt);
-               }
+               ct = getOperator();
+               if(ct != null) tokens.add(ct);
             } break;
 
             default: {
-               if(ct.type == TOKEN_TYPE.STRING_LITERAL) {
-                  ct.data += currChar;
-               }
-            }
+               ct = getString();
+               if(ct != null) tokens.add(ct);
+            } break;
          }
       }
    }
 
    public void printTokens() {
-    for(token t : tokens) t.print();
+     for(token t : tokens) t.print();
    }
 }
