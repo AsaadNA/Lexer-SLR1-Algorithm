@@ -7,23 +7,13 @@ class InputSource {
    private int counter = -1;
    public InputSource(String source) {
       this.source = source;
+      if(this.source.charAt(source.length()-1) != ' ') { this.source += ' '; }
    }
 
-   public boolean isEOF() {
-      return (counter == source.length()-1);
-   }
-
+   public boolean isEOF() { return (counter == source.length()-1); }
    public void retract() { counter -= 1; }
-
-   public char getCurrChar() {
-      if(counter > 0) return source.charAt(counter);
-      return ' ';
-   }
-
-   public char nextChar() {
-      counter += 1;
-      return source.charAt(counter);
-   }
+   public char getCurrChar() { return source.charAt(counter); }
+   public char nextChar() { counter += 1; return source.charAt(counter); }
 }
 
 public class utils {

@@ -12,34 +12,41 @@ public class lex {
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
    private boolean isAlphabet(char c) {return ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));}
 
-   private token getString() {
+   private token getStringAndIdentifier() {
       int state = 0;
       String theString = ""; //to store string
       while(!inputProgram.isEOF()) {
          switch(state) {
             case 0: {
-               char c = inputProgram.getCurrChar();
-               theString += c; //to store string
+               char c = inputProgram.getCurrChar(); theString += c; //to store string
                if(c == '"') state = 1;
+               else if(isAlphabet(c)) state = 4;
                else return null;
             } break;
 
             case 1: {
-               char c = inputProgram.nextChar();
-               theString += c; //to store string
+               char c = inputProgram.nextChar(); theString += c; //to store string
                if(isAlphabet(c)) state = 2;
                else return null;
             } break;
 
             case 2: {
-               char c = inputProgram.nextChar();
-               theString += c; //to store string
+               char c = inputProgram.nextChar(); theString += c; //to store string
                if(isAlphabet(c) || isDigit(c)) state = 2;
                else if(c == '"') state = 3;
                else return null;
             } break;
 
             case 3: { return new token(TOKEN_TYPE.SL,theString); }
+
+            case 4: {
+               char c = inputProgram.nextChar(); theString += c;
+               if(isAlphabet(c) || isDigit(c)) state = 4;
+               else state = 5;
+            } break;
+
+            case 5: { return new token(TOKEN_TYPE.ID,theString); }
+            
             default: { return null; }
          }
       } return null;
@@ -143,7 +150,7 @@ public class lex {
             } break;
 
             default: {
-               ct = getString();
+               ct = getStringAndIdentifier();
                if(ct != null) tokens.add(ct);
             } break;
          }
