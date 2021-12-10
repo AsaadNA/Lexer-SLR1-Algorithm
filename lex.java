@@ -1,5 +1,4 @@
 /*
-      //TODO:  Handle /* comments.
       //TODO:  Generate Symbol table
  */
 
@@ -11,7 +10,8 @@ public class lex {
    
    private ArrayList <token> tokens = new ArrayList<token>();
    private ArrayList <token> invalidTokens = new ArrayList<token>();
-   private ArrayList <token> comments = new ArrayList<token>();
+   private ArrayList <token> singlelineComments = new ArrayList<token>();
+   private ArrayList <token> multilineComments = new ArrayList<token>();
    
    private int lineNumber = 0;
 
@@ -167,12 +167,13 @@ public class lex {
             case 19: {
                char c = inputProgram.nextChar();
                if(c == '/') state = 20;
+               else if(c == '*') state = 24;
                else state = 23;
             } break;
 
             case 20: {
                char c = inputProgram.nextChar(); comment += c;
-               if(isAlphabet(c)) state = 21;
+               if(isAlphabet(c) || c == ' ') state = 21;
                else return null;
             } break;
 
@@ -186,7 +187,7 @@ public class lex {
                   if(inputProgram.isEOF()) { 
                       inputProgram.retract();
                       comment = comment.replace("\n", "").replace("\r", ""); //remove \n from comment
-                      comments.add(new token(comment,lineNumber)); comment = ""; //Add a new comment
+                      singlelineComments.add(new token(comment,lineNumber)); comment = ""; //Add a new comment
                       return null;
                   }
                } else { state = 22; }
@@ -195,13 +196,39 @@ public class lex {
             case 22: {
                inputProgram.retract();
                comment = comment.replace("\n", "").replace("\r", ""); //remove \n from comment
-               comments.add(new token(comment,lineNumber)); comment = ""; //Add a new comment
+               singlelineComments.add(new token(comment,lineNumber)); comment = ""; //Add a new comment
                return null;
             }
+
+            /* / */
 
             case 23: {
                inputProgram.retract();
                return new token(TOKEN_TYPE.AO,"DV");
+            }
+
+            /* MULIT LINE */
+
+            case 24: {
+               char c = inputProgram.nextChar(); comment += c;
+               if(c == ' ' || isAlphabet(c) || c == '\n' || c == '\t' || c == '\r') state = 25; //start comment with many things
+               else return null;
+            } break;
+
+            case 25: {
+               char c = inputProgram.nextChar();
+               if(isAlphabet(c) || isDigit(c) || c == ' ') {comment += c; state = 25;}
+               else if(c == '*') state = 26;
+            } break;
+
+            case 26: {
+               char c = inputProgram.nextChar();
+               if(c == '/') state = 27;
+            } break;
+
+            case 27: {
+               multilineComments.add(new token(comment,lineNumber)); comment = ""; //add a new multiline comment
+               return null;
             }
 
             default: { return null; }
@@ -288,9 +315,15 @@ public class lex {
     }     
     
     //Print all comments if founded...
-    if(comments.size() != 0) {
-       System.out.println("\n === COMMENTS FOUNDED ===\n");
-      for(token t : comments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
-    }     
+    if(singlelineComments.size() != 0) {
+      System.out.println("\n === SINGLE LINE COMMENTS FOUNDED ===\n");
+      for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
+     }     
+
+     //Print all comments if founded...
+    if(multilineComments.size() != 0) {
+      System.out.println("\n === MULTI LINE COMMENTS FOUNDED ===\n");
+      for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
+     }     
    }
 }

@@ -1,6 +1,14 @@
-int x = 2; //This is a integer variable1
+int val1 = 21; // to store a value
+int val2;
+int total;
+string purpose = "Calculation"; /* to store calculation */
 
-//Checking if statements
-if(x == 3) {
-   int y = 5;
+if ( val1 > 10)
+{@
+   val2 = 5;
 }
+else
+{!
+   val2 = 10;
+}
+total = (val1 / val2) * val1;@
