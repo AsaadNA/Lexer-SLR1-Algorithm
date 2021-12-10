@@ -12,6 +12,35 @@ public class lex {
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
    private boolean isAlphabet(char c) {return ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));}
 
+   private token getDigits() {
+      int state = 0;
+      String theInt = "";
+      while(!inputProgram.isEOF()) {
+         switch(state) {
+            case 0: {
+               char c = inputProgram.getCurrChar(); theInt += c;
+               if(isDigit(c)) state = 1;
+               else return null;
+            } break;
+            
+            case 1: {
+               char c = inputProgram.nextChar();
+               if(isDigit(c)) { theInt += c; state = 1; } //if it's a digit then append to the resultant string otherwise not
+               else state = 2;
+            } break;
+
+            case 2: { 
+               inputProgram.retract(); 
+               return new token(TOKEN_TYPE.IN,theInt);
+            }
+
+            default: { return null; }
+         }
+      } return null;
+   }
+
+   //This handles String and Identifiers in a single transition state
+   //When it returns then we differentiate the identifiers from the keywords..
    private token getStringAndIdentifier() {
       int state = 0;
       String theString = ""; //to store string
@@ -40,18 +69,19 @@ public class lex {
             case 3: { return new token(TOKEN_TYPE.SL,theString); }
 
             case 4: {
-               char c = inputProgram.nextChar(); theString += c;
-               if(isAlphabet(c) || isDigit(c)) state = 4;
+               char c = inputProgram.nextChar(); 
+               if(isAlphabet(c) || isDigit(c) && c != ';') { theString += c; state = 4; } //; is added if in the end , so we only append if ; is not there
                else state = 5;
             } break;
 
-            case 5: { return new token(TOKEN_TYPE.ID,theString); }
+            case 5: { inputProgram.retract(); return new token(TOKEN_TYPE.ID,theString); }
             
             default: { return null; }
          }
       } return null;
    }
 
+   //This handles all the operators in a single transition state...
    private token getOperator() {
       int state = 0;
       while(!inputProgram.isEOF()) {
@@ -149,9 +179,33 @@ public class lex {
                if(ct != null) tokens.add(ct);
             } break;
 
+            case '0':
+            case '1':
+            case '2':
+            case '3':
+            case '4':
+            case '5':
+            case '6':
+            case '7':
+            case '8':
+            case '9': {
+               ct = getDigits();
+               if(ct != null) tokens.add(ct);
+            } break;
+
             default: {
                ct = getStringAndIdentifier();
-               if(ct != null) tokens.add(ct);
+               if(ct != null) {
+                  if(ct.type == TOKEN_TYPE.ID) { //identifying keywords from identifiers...
+                     if(ct.data.equals("int") || ct.data.equals("int ")) {ct.data = "0"; ct.type = TOKEN_TYPE.INT; }
+                     if(ct.data.equals("char") || ct.data.equals("char ")) {ct.data = "1"; ct.type = TOKEN_TYPE.CHAR; }
+                     if(ct.data.equals("string") || ct.data.equals("string ")) {ct.data = "2"; ct.type = TOKEN_TYPE.STRING; }
+                     if(ct.data.equals("if") || ct.data.equals("if ")) {ct.data = "3"; ct.type = TOKEN_TYPE.IF; }
+                     if(ct.data.equals("else") || ct.data.equals("else ")) {ct.data = "4"; ct.type = TOKEN_TYPE.ELSE; }
+                     if(ct.data.equals("do") || ct.data.equals("do ")) {ct.data = "5"; ct.type = TOKEN_TYPE.DO; }
+                     if(ct.data.equals("while") || ct.data.equals("while ")) {ct.data = "6"; ct.type = TOKEN_TYPE.WHILE; }
+                  } tokens.add(ct);
+               }
             } break;
          }
       }

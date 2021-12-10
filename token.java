@@ -1,6 +1,7 @@
 enum TOKEN_TYPE {
    RO,OO,AO,
-   ID,SL;
+   ID,SL,IN,
+   INT,CHAR,STRING,IF,ELSE,DO,WHILE;
 }
 
 public class token {
