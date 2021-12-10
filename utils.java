@@ -23,6 +23,7 @@ public class utils {
          File obj = new File(pathToFile);
          Scanner reader = new Scanner(obj);
          while(reader.hasNextLine()) {
+            res += "\n"; //Add new line literally
             res += reader.nextLine();
          } reader.close();
       } catch(FileNotFoundException e) {

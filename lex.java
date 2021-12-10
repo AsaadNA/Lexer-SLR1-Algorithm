@@ -1,9 +1,17 @@
-import java.util.ArrayList; // import the ArrayList class
+/*
+      //TODO:  Handle // comments.
+      //TODO:  Handle /* comments.
+      //TODO:  Generate Symbol table
+ */
+
+import java.util.ArrayList;
 
 public class lex {
 
    private InputSource inputProgram = null;
    private ArrayList <token> tokens = new ArrayList<token>();
+   private ArrayList <token> invalidTokens = new ArrayList<token>();
+   private int lineNumber = 0;
 
    public lex(String pathToFile) {
       inputProgram = new InputSource(utils.readfile(pathToFile));
@@ -12,6 +20,7 @@ public class lex {
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
    private boolean isAlphabet(char c) {return ( (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z'));}
 
+   //This handles digits only...
    private token getDigits() {
       int state = 0;
       String theInt = "";
@@ -193,25 +202,48 @@ public class lex {
                if(ct != null) tokens.add(ct);
             } break;
 
+            //Handling some whitesapces (QUOTATION , BLANKS , NEWLINES)...
+            case '"':
+            case ' ':
+               break;
+            case '\n':
+               lineNumber += 1;
+               break;
+
             default: {
+               char c = inputProgram.getCurrChar();
+               if(isAlphabet(c)) {
                ct = getStringAndIdentifier();
-               if(ct != null) {
-                  if(ct.type == TOKEN_TYPE.ID) { //identifying keywords from identifiers...
-                     if(ct.data.equals("int") || ct.data.equals("int ")) {ct.data = "0"; ct.type = TOKEN_TYPE.INT; }
-                     if(ct.data.equals("char") || ct.data.equals("char ")) {ct.data = "1"; ct.type = TOKEN_TYPE.CHAR; }
-                     if(ct.data.equals("string") || ct.data.equals("string ")) {ct.data = "2"; ct.type = TOKEN_TYPE.STRING; }
-                     if(ct.data.equals("if") || ct.data.equals("if ")) {ct.data = "3"; ct.type = TOKEN_TYPE.IF; }
-                     if(ct.data.equals("else") || ct.data.equals("else ")) {ct.data = "4"; ct.type = TOKEN_TYPE.ELSE; }
-                     if(ct.data.equals("do") || ct.data.equals("do ")) {ct.data = "5"; ct.type = TOKEN_TYPE.DO; }
-                     if(ct.data.equals("while") || ct.data.equals("while ")) {ct.data = "6"; ct.type = TOKEN_TYPE.WHILE; }
-                  } tokens.add(ct);
-               }
+                  if(ct != null) {
+                     if(ct.type == TOKEN_TYPE.ID) { //identifying keywords from identifiers...
+                        if(ct.data.equals("int") || ct.data.equals("int ")) {ct.data = "0"; ct.type = TOKEN_TYPE.INT; }
+                        if(ct.data.equals("char") || ct.data.equals("char ")) {ct.data = "1"; ct.type = TOKEN_TYPE.CHAR; }
+                        if(ct.data.equals("string") || ct.data.equals("string ")) {ct.data = "2"; ct.type = TOKEN_TYPE.STRING; }
+                        if(ct.data.equals("if") || ct.data.equals("if ")) {ct.data = "3"; ct.type = TOKEN_TYPE.IF; }
+                        if(ct.data.equals("else") || ct.data.equals("else ")) {ct.data = "4"; ct.type = TOKEN_TYPE.ELSE; }
+                        if(ct.data.equals("do") || ct.data.equals("do ")) {ct.data = "5"; ct.type = TOKEN_TYPE.DO; }
+                        if(ct.data.equals("while") || ct.data.equals("while ")) {ct.data = "6"; ct.type = TOKEN_TYPE.WHILE; }
+                     } tokens.add(ct);
+                  } 
+               } else { String s = "" + c; invalidTokens.add(new token(s,lineNumber)); } //Error handling invalid lexmes with line number...
             } break;
          }
       }
    }
 
+   //This will print all the tokens parsed...
    public void printTokens() {
-     for(token t : tokens) t.print();
+
+    //Print tokens if founded...
+    if(tokens.size() != 0) {
+      System.out.println("");
+      for(token t : tokens) t.print();
+    }
+
+    //Print invalid lexemes if founded...
+    if(invalidTokens.size() != 0) {
+       System.out.println("\n === INVALID LEXEMES FOUNDED ===\n");
+      for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + "  : " + t.data);
+    }     
    }
 }

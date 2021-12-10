@@ -8,8 +8,11 @@ public class token {
    
    public TOKEN_TYPE type;
    public String data;
+
+   public int lineNumber = -1;
    
    public token() {}
+   public token(String data,int lineNumber) { this.data = data; this.lineNumber = lineNumber;}
    public token(TOKEN_TYPE type , String data) {
       this.type = type;
       this.data = data;
