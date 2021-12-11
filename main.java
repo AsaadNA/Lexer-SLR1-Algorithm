@@ -3,5 +3,6 @@ public class main {
       lex l = new lex("input.txt");
       l.parse();
       l.printTokens();
+      l.printSymbolTable();
    }
 }

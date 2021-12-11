@@ -4,6 +4,23 @@ enum TOKEN_TYPE {
    INT,CHAR,STRING,IF,ELSE,DO,WHILE;
 }
 
+//Symbol token ... represent a token in symbol table
+class sToken {
+
+   public int attribValue = -1;
+   public String type = "-" , tokenName = "-" , value = "-";
+   public sToken(int attribValue,String tokenName,String type,String value) {
+      this.attribValue = attribValue;
+      this.tokenName = tokenName;
+      this.type = type;
+      this.value = value;
+   }
+
+   public void print() {
+      System.out.println(attribValue + "\t" + tokenName + "\t\t" + type + "\t" + value);
+   }
+}
+
 public class token {
    
    public TOKEN_TYPE type;

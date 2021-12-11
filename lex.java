@@ -1,22 +1,20 @@
-/*
-      //TODO:  Generate Symbol table
- */
-
 import java.util.ArrayList;
 
 public class lex {
 
+   private int lineNumber = 0;
    private InputSource inputProgram = null;
    
    private ArrayList <token> tokens = new ArrayList<token>();
    private ArrayList <token> invalidTokens = new ArrayList<token>();
    private ArrayList <token> singlelineComments = new ArrayList<token>();
    private ArrayList <token> multilineComments = new ArrayList<token>();
-   
-   private int lineNumber = 0;
+
+   private symboltable symbolTable = null;
 
    public lex(String pathToFile) {
       inputProgram = new InputSource(utils.readfile(pathToFile));
+      symbolTable = new symboltable(tokens); //intiialize our symbol table with our tokens
    }
 
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
@@ -58,9 +56,9 @@ public class lex {
       while(!inputProgram.isEOF()) {
          switch(state) {
             case 0: {
-               char c = inputProgram.getCurrChar(); theString += c; //to store string
-               if(c == '"') state = 1;
-               else if(isAlphabet(c)) state = 4;
+               char c = inputProgram.getCurrChar();  //to store string
+               if(c == '"') { state = 1; } 
+               else if(isAlphabet(c)) { theString += c; state = 4; }
                else return null;
             } break;
 
@@ -71,9 +69,9 @@ public class lex {
             } break;
 
             case 2: {
-               char c = inputProgram.nextChar(); theString += c; //to store string
-               if(isAlphabet(c) || isDigit(c)) state = 2;
-               else if(c == '"') state = 3;
+               char c = inputProgram.nextChar();  //to store string
+               if(isAlphabet(c) || isDigit(c)) { theString += c; state = 2; }
+               else if(c == '"') { state = 3; }
                else return null;
             } break;
 
@@ -270,9 +268,9 @@ public class lex {
                if(ct != null) tokens.add(ct);
             } break;
 
-            //Handling some whitesapces (QUOTATION , BLANKS , NEWLINES)...
-            case '"':
+            //Handling some whitesapces (BLANKS , TABS , NEWLINES)...
             case ' ':
+            case '\t':
                break;
             case '\n':
                lineNumber += 1;
@@ -280,7 +278,7 @@ public class lex {
 
             default: {
                char c = inputProgram.getCurrChar();
-               if(isAlphabet(c)) {
+               if(isAlphabet(c) || c == '"') { //handles identifiers and also string literals
                ct = getStringAndIdentifier();
                   if(ct != null) {
                      if(ct.type == TOKEN_TYPE.ID) { //identifying keywords from identifiers...
@@ -297,6 +295,14 @@ public class lex {
             } break;
          }
       }
+
+      //After parsing we want to generate a SYMBOL TABLE from the tokens...
+      symbolTable.generateTable();
+   }
+
+   //This will print the symbol table from the given tokens...
+   public void printSymbolTable() { 
+      symbolTable.print(); 
    }
 
    //This will print all the tokens parsed...
@@ -310,19 +316,19 @@ public class lex {
 
     //Print invalid lexemes if founded...
     if(invalidTokens.size() != 0) {
-       System.out.println("\n === INVALID LEXEMES FOUNDED ===\n");
+       System.out.println("\n=== INVALID LEXEMES FOUNDED ===\n");
       for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.data);
     }     
     
     //Print all comments if founded...
     if(singlelineComments.size() != 0) {
-      System.out.println("\n === SINGLE LINE COMMENTS FOUNDED ===\n");
+      System.out.println("\n=== SINGLE LINE COMMENTS FOUNDED ===\n");
       for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
      }     
 
      //Print all comments if founded...
     if(multilineComments.size() != 0) {
-      System.out.println("\n === MULTI LINE COMMENTS FOUNDED ===\n");
+      System.out.println("\n=== MULTI LINE COMMENTS FOUNDED ===\n");
       for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
      }     
    }
