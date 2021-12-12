@@ -7,7 +7,7 @@ class InputSource {
    private int counter = -1;
    public InputSource(String source) {
       this.source = source;
-      if(this.source.charAt(source.length()-1) != ' ') { this.source += ' '; }
+      if(this.source.charAt(source.length()-1) != ' ') { this.source += ' '; this.source += ' ';this.source += ' '; this.source += ' '; }
    }
 
    public boolean isEOF() { return (counter == source.length()-1); }
