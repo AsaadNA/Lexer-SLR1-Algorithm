@@ -10,11 +10,10 @@ public class lex {
    private ArrayList <token> singlelineComments = new ArrayList<token>();
    private ArrayList <token> multilineComments = new ArrayList<token>();
 
-   private symboltable symbolTable = null;
+   private symboltable symbolTable = new symboltable();
 
-   public lex(String pathToFile) {
-      inputProgram = new InputSource(utils.readfile(pathToFile));
-      symbolTable = new symboltable(tokens); //intiialize our symbol table with our tokens
+   public lex(String data,boolean isFile) {
+      inputProgram = isFile ? new InputSource(utils.readfile(data)) : new InputSource(data);
    }
 
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
@@ -40,7 +39,8 @@ public class lex {
 
             case 2: { 
                inputProgram.retract(); 
-               return new token(TOKEN_TYPE.IN,theInt);
+               symbolTable.push(TOKEN_NAME.IN,theInt);
+               return new token(TOKEN_NAME.IN,theInt,symbolTable.getCurrentAttribCounter());
             }
 
             default: { return null; }
@@ -75,7 +75,10 @@ public class lex {
                else return null;
             } break;
 
-            case 3: { return new token(TOKEN_TYPE.SL,theString); }
+            case 3: {
+               symbolTable.push(TOKEN_NAME.SL,theString);
+               return new token(TOKEN_NAME.SL,theString,symbolTable.getCurrentAttribCounter());  
+            }
 
             case 4: {
                char c = inputProgram.nextChar(); 
@@ -83,7 +86,9 @@ public class lex {
                else state = 5;
             } break;
 
-            case 5: { inputProgram.retract(); return new token(TOKEN_TYPE.ID,theString); }
+            //NOTE: Identifier token cannot be inserted in the symbol table here
+            //       we need to identify keyword etc so we are gonna do that further down                     
+            case 5: { inputProgram.retract(); return new token(TOKEN_NAME.ID,theString,"No attrib"); }
             
             default: { return null; }
          }
@@ -119,12 +124,12 @@ public class lex {
                else state = 4;
             } break;
 
-            case 2: { return new token(TOKEN_TYPE.RO,"LE"); }
-            case 3: { return new token(TOKEN_TYPE.RO,"NE"); }
+            case 2: { return new token(TOKEN_NAME.RO,"<=","LE"); }
+            case 3: { return new token(TOKEN_NAME.RO,"<>","NE"); }
 
             case 4: {
                inputProgram.retract();
-               return new token(TOKEN_TYPE.RO,"LT");
+               return new token(TOKEN_NAME.RO,"<","LT");
             }
 
             case 5: {
@@ -133,11 +138,11 @@ public class lex {
                else state = 7;
             } break;
 
-            case 6: {  return new token(TOKEN_TYPE.RO,"EQ"); }
+            case 6: {  return new token(TOKEN_NAME.RO,"==","EQ"); }
 
             case 7: {
                inputProgram.retract();
-               return new token(TOKEN_TYPE.OO,"AS");
+               return new token(TOKEN_NAME.OO,"=","AS");
             }
 
             case 8: {
@@ -146,21 +151,21 @@ public class lex {
                else state = 10;
             } break;
 
-            case 9: { return new token(TOKEN_TYPE.RO,"GE"); }
+            case 9: { return new token(TOKEN_NAME.RO,">=","GE"); }
 
             case 10: {
                inputProgram.retract();
-               return new token(TOKEN_TYPE.RO,"GT");
+               return new token(TOKEN_NAME.RO,">","GT");
             }
 
-            case 11: { return new token(TOKEN_TYPE.OO,"CP"); }
-            case 12: { return new token(TOKEN_TYPE.OO,"OP"); }
-            case 13: { return new token(TOKEN_TYPE.OO,"OB"); }
-            case 14: { return new token(TOKEN_TYPE.OO,"CB"); }
-            case 15: { return new token(TOKEN_TYPE.OO,"TR"); }
-            case 16: { return new token(TOKEN_TYPE.AO,"AD"); }
-            case 17: { return new token(TOKEN_TYPE.AO,"SB"); }
-            case 18: { return new token(TOKEN_TYPE.AO,"ML"); }
+            case 11: { return new token(TOKEN_NAME.OO,")","CP"); }
+            case 12: { return new token(TOKEN_NAME.OO,"(","OP"); }
+            case 13: { return new token(TOKEN_NAME.OO,"{","OB"); }
+            case 14: { return new token(TOKEN_NAME.OO,"}","CB"); }
+            case 15: { return new token(TOKEN_NAME.OO,";","TR"); }
+            case 16: { return new token(TOKEN_NAME.AO,"+","AD"); }
+            case 17: { return new token(TOKEN_NAME.AO,"-","SB"); }
+            case 18: { return new token(TOKEN_NAME.AO,"*","ML"); }
             
             case 19: {
                char c = inputProgram.nextChar();
@@ -202,7 +207,7 @@ public class lex {
 
             case 23: {
                inputProgram.retract();
-               return new token(TOKEN_TYPE.AO,"DV");
+               return new token(TOKEN_NAME.AO,"/","DV");
             }
 
             /* MULIT LINE */
@@ -281,55 +286,54 @@ public class lex {
                if(isAlphabet(c) || c == '"') { //handles identifiers and also string literals
                ct = getStringAndIdentifier();
                   if(ct != null) {
-                     if(ct.type == TOKEN_TYPE.ID) { //identifying keywords from identifiers...
-                        if(ct.data.equals("int") || ct.data.equals("int ")) {ct.data = "0"; ct.type = TOKEN_TYPE.INT; }
-                        if(ct.data.equals("char") || ct.data.equals("char ")) {ct.data = "1"; ct.type = TOKEN_TYPE.CHAR; }
-                        if(ct.data.equals("string") || ct.data.equals("string ")) {ct.data = "2"; ct.type = TOKEN_TYPE.STRING; }
-                        if(ct.data.equals("if") || ct.data.equals("if ")) {ct.data = "3"; ct.type = TOKEN_TYPE.IF; }
-                        if(ct.data.equals("else") || ct.data.equals("else ")) {ct.data = "4"; ct.type = TOKEN_TYPE.ELSE; }
-                        if(ct.data.equals("do") || ct.data.equals("do ")) {ct.data = "5"; ct.type = TOKEN_TYPE.DO; }
-                        if(ct.data.equals("while") || ct.data.equals("while ")) {ct.data = "6"; ct.type = TOKEN_TYPE.WHILE; }
+                     if(ct.tokenName == TOKEN_NAME.ID) { //identifying keywords from identifiers...
+                        if(ct.lexeme.equals("int") || ct.lexeme.equals("int ")) {ct.attribValue = "0"; ct.tokenName = TOKEN_NAME.INT; }
+                        else if(ct.lexeme.equals("char") || ct.lexeme.equals("char ")) {ct.attribValue = "1"; ct.tokenName = TOKEN_NAME.CHAR; }
+                        else if(ct.lexeme.equals("string") || ct.lexeme.equals("string ")) {ct.attribValue = "2"; ct.tokenName = TOKEN_NAME.STRING; }
+                        else if(ct.lexeme.equals("if") || ct.lexeme.equals("if ")) {ct.attribValue = "3"; ct.tokenName = TOKEN_NAME.IF; }
+                        else if(ct.lexeme.equals("else") || ct.lexeme.equals("else ")) {ct.attribValue = "4"; ct.tokenName = TOKEN_NAME.ELSE; }
+                        else if(ct.lexeme.equals("do") || ct.lexeme.equals("do ")) {ct.attribValue = "5"; ct.tokenName = TOKEN_NAME.DO; }
+                        else if(ct.lexeme.equals("while") || ct.lexeme.equals("while ")) {ct.attribValue = "6"; ct.tokenName = TOKEN_NAME.WHILE; }
+                        else { //we do this here so we do not put keyword in symbol table
+                           symbolTable.push(ct.tokenName,ct.lexeme);
+                           ct.attribCounter = symbolTable.getCurrentAttribCounter();
+                        }
                      } tokens.add(ct);
                   } 
                } else { String s = "" + c; invalidTokens.add(new token(s,lineNumber)); } //Error handling invalid lexmes with line number...
             } break;
          }
       }
-
-      //After parsing we want to generate a SYMBOL TABLE from the tokens...
-      symbolTable.generateTable();
-   }
-
-   //This will print the symbol table from the given tokens...
-   public void printSymbolTable() { 
-      symbolTable.print(); 
    }
 
    //This will print all the tokens parsed...
    public void printTokens() {
 
-    //Print tokens if founded...
-    if(tokens.size() != 0) {
+   //Print tokens if founded...
+   if(tokens.size() != 0) {
       System.out.println("");
       for(token t : tokens) t.print();
-    }
+   }
 
     //Print invalid lexemes if founded...
-    if(invalidTokens.size() != 0) {
-       System.out.println("\n=== INVALID LEXEMES FOUNDED ===\n");
-      for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.data);
-    }     
+   if(invalidTokens.size() != 0) {
+      System.out.println("\n=== INVALID LEXEMES FOUNDED ===\n");
+      for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.lexeme);
+   }     
     
     //Print all comments if founded...
-    if(singlelineComments.size() != 0) {
+   if(singlelineComments.size() != 0) {
       System.out.println("\n=== SINGLE LINE COMMENTS FOUNDED ===\n");
-      for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
-     }     
+      for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
+   }     
 
-     //Print all comments if founded...
-    if(multilineComments.size() != 0) {
+   //Print all comments if founded...
+   if(multilineComments.size() != 0) {
       System.out.println("\n=== MULTI LINE COMMENTS FOUNDED ===\n");
-      for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.data);
-     }     
+      for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
+   }
+
+   symbolTable.print();
+     
    }
 }

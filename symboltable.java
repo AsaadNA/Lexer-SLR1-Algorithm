@@ -1,43 +1,31 @@
 import java.util.ArrayList;
 
 public class symboltable {
-
-   private ArrayList <token> tokens = new ArrayList<token>();
-   private ArrayList <sToken> theTable = new ArrayList<sToken>();
    
-   public symboltable(ArrayList<token> tokens) {
-      this.tokens = tokens;
+   private ArrayList<token> table = new ArrayList<token>();
+   private int attribCounter = 0;
+
+   public symboltable() {
+      push(TOKEN_NAME.INT,"-");
+      push(TOKEN_NAME.CHAR,"-");
+      push(TOKEN_NAME.STRING,"-");
+      push(TOKEN_NAME.IF,"-");
+      push(TOKEN_NAME.ELSE,"-");
+      push(TOKEN_NAME.DO,"-");
+      push(TOKEN_NAME.WHILE,"-");
    }
 
-   //we need to make sure that we generate the table only
-   //one time and not call this method again and again
-   public void generateTable() {
-      if(theTable.size() == 0) {
+   public int getCurrentAttribCounter() { return this.attribCounter-1; }
 
-         //initializing it with keywords
-         theTable.add(new sToken(0,"int","-","-"));
-         theTable.add(new sToken(1,"char","-","-"));
-         theTable.add(new sToken(2,"string","-","-"));
-         theTable.add(new sToken(3,"if","-","-"));
-         theTable.add(new sToken(4,"else","-","-"));
-         theTable.add(new sToken(5,"do","-","-"));
-         theTable.add(new sToken(6,"while","-","-"));
-
-         int startingCounter = 7;
-         for(token t : tokens) {
-            if(t.type == TOKEN_TYPE.ID || t.type == TOKEN_TYPE.SL || t.type == TOKEN_TYPE.IN) {
-               theTable.add(new sToken(startingCounter,t.type.toString(),"-",t.data));
-               startingCounter++;
-            }
-         }
-
-      } else {
-         System.out.println("ERROR: Symbol table already has been generated for tokens !");
-      }
+   public void push(TOKEN_NAME tokenName , String lexeme) {
+      table.add(new token(tokenName,lexeme,this.attribCounter));
+      this.attribCounter += 1;
    }
 
    public void print() {
-      System.out.println("\n\t=== SYMBOL TABLE ===\n");
-      for(sToken t : theTable) t.print();
+      System.out.println("\n\t === Symbol table ===\n");
+      for(token t : table) {
+         System.out.println(t.attribCounter + "\t" + t.tokenName + "\t" + "-" + "\t" + t.lexeme);
+      }
    }
 }

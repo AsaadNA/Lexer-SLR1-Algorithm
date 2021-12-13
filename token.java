@@ -1,41 +1,32 @@
-enum TOKEN_TYPE {
+enum TOKEN_NAME {
    RO,OO,AO,
    ID,SL,IN,
    INT,CHAR,STRING,IF,ELSE,DO,WHILE;
 }
 
-//Symbol token ... represent a token in symbol table
-class sToken {
-
-   public int attribValue = -1;
-   public String type = "-" , tokenName = "-" , value = "-";
-   public sToken(int attribValue,String tokenName,String type,String value) {
-      this.attribValue = attribValue;
-      this.tokenName = tokenName;
-      this.type = type;
-      this.value = value;
-   }
-
-   public void print() {
-      System.out.println(attribValue + "\t" + tokenName + "\t\t" + type + "\t" + value);
-   }
-}
-
 public class token {
    
-   public TOKEN_TYPE type;
-   public String data;
+   public TOKEN_NAME tokenName;
+   public String lexeme,attribValue;
+   public int attribCounter = -1; //this will be filled in by the symbol table
 
    public int lineNumber = -1;
    
-   public token() {}
-   public token(String data,int lineNumber) { this.data = data; this.lineNumber = lineNumber;}
-   public token(TOKEN_TYPE type , String data) {
-      this.type = type;
-      this.data = data;
+   public token() {} //intiializer
+   public token(String lexeme,int lineNumber) { this.lexeme = lexeme; this.lineNumber = lineNumber;} //invalid tokens and comments
+   public token(TOKEN_NAME tokenName , String lexeme , String attribValue) { //normal tokens
+      this.tokenName = tokenName;
+      this.lexeme = lexeme;
+      this.attribValue = attribValue;
+   }
+   public token(TOKEN_NAME tokenName , String lexeme , int attribCounter) { //symbol tokens
+      this.tokenName = tokenName;
+      this.lexeme = lexeme;
+      this.attribCounter = attribCounter;
    }
 
    public void print() {
-      System.out.println("Type: " + type + " | data: " + data);
+      if(attribCounter < 0) System.out.println(lexeme + " \t " + tokenName + " \t "  + attribValue); //it's a token with which is not in symbol table
+      else System.out.println(lexeme + " \t " + tokenName + " \t "  + attribCounter); //it's a token which is in symbol table
    }
 }
