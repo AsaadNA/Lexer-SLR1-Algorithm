@@ -7,10 +7,9 @@ enum TOKEN_NAME {
 public class token {
    
    public TOKEN_NAME tokenName;
-   public String lexeme,attribValue;
-   public int attribCounter = -1; //this will be filled in by the symbol table
-
-   public int lineNumber = -1;
+   public String lexeme,attribValue; //attribute value according to lexeme table
+   public int attribCounter = -1; //attribute value according to symbol table
+   public int lineNumber = -1; //line number this token is at
    
    public token() {} //intiializer
    public token(String lexeme,int lineNumber) { this.lexeme = lexeme; this.lineNumber = lineNumber;} //invalid tokens and comments

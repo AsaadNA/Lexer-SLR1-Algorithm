@@ -1,4 +1,14 @@
-int x = 2;
-do {
-   x += 1;
-} while (x <> 10);
+int val1 = 21; //@NOTE: To Store a value;
+int val2; 
+int total;
+string purpose = "CalculaTion @-_-!"; /* @NOTE: This is to store CalculaTion */
+
+if( val1 > 10)
+{
+   val2 = 5;
+}
+else
+{
+val2 = 10;
+}
+total = (val1 + val2) * val2;

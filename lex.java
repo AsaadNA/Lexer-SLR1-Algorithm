@@ -1,5 +1,7 @@
 import java.util.ArrayList;
 
+/*TODO: Add an offset counter for any invalid lexeme */
+
 public class lex {
 
    private int lineNumber = 0;
@@ -57,26 +59,24 @@ public class lex {
          switch(state) {
             case 0: {
                char c = inputProgram.getCurrChar();  //to store string
-               if(c == '"') { state = 1; } 
-               else if(isAlphabet(c)) { theString += c; state = 4; }
+               if(c == '"') { state = 1; } //this means it's a string literal 
+               else if(isAlphabet(c)) { theString += c; state = 4; } //this means it's a identifier
                else return null;
             } break;
 
             case 1: {
                char c = inputProgram.nextChar(); theString += c; //to store string
-               if(isAlphabet(c)) state = 2;
-               else return null;
+               state = 2; //it does not matter what comes in the " " so we move forward
             } break;
 
             case 2: {
                char c = inputProgram.nextChar();  //to store string
-               if(isAlphabet(c) || isDigit(c)) { theString += c; state = 2; }
-               else if(c == '"') { state = 3; }
-               else return null;
+               if(c == '"') { state = 3; }
+               else { theString += c; state = 2; } 
             } break;
 
             case 3: {
-               symbolTable.push(TOKEN_NAME.SL,theString);
+               symbolTable.push(TOKEN_NAME.SL,theString); //pushing to symbol table
                return new token(TOKEN_NAME.SL,theString,symbolTable.getCurrentAttribCounter());  
             }
 
@@ -176,24 +176,21 @@ public class lex {
 
             case 20: {
                char c = inputProgram.nextChar(); comment += c;
-               if(isAlphabet(c) || c == ' ') state = 21;
-               else return null;
+               state = 21;
             } break;
 
             case 21: {
                char c = inputProgram.nextChar(); comment += c;
-               if(c == ' ' || isAlphabet(c) || isDigit(c)) {                
+               if(c == '\n') { state = 22; } //when a newline occured then we know comment is finished
+               else {
                   state = 21;
-                  //We bring the final state here because 
-                  //What if the comment is at the EOF ?? that comment will not be 
-                  //Processed
                   if(inputProgram.isEOF()) { 
                       inputProgram.retract();
                       comment = comment.replace("\n", "").replace("\r", ""); //remove \n from comment
                       singlelineComments.add(new token(comment,lineNumber)); comment = ""; //Add a new comment
                       return null;
                   }
-               } else { state = 22; }
+               }
             } break;
 
             case 22: {
@@ -214,22 +211,16 @@ public class lex {
 
             case 24: {
                char c = inputProgram.nextChar(); comment += c;
-               if(c == ' ' || isAlphabet(c) || c == '\n' || c == '\t' || c == '\r') state = 25; //start comment with many things
-               else return null;
+               state = 25;
             } break;
 
             case 25: {
                char c = inputProgram.nextChar();
-               if(isAlphabet(c) || isDigit(c) || c == ' ') {comment += c; state = 25;}
-               else if(c == '*') state = 26;
+               if(c == '*' && inputProgram.nextChar() == '/') { state = 26; }
+               else { comment += c; state = 25; }
             } break;
 
             case 26: {
-               char c = inputProgram.nextChar();
-               if(c == '/') state = 27;
-            } break;
-
-            case 27: {
                multilineComments.add(new token(comment,lineNumber)); comment = ""; //add a new multiline comment
                return null;
             }
@@ -256,7 +247,7 @@ public class lex {
             case '}':
             case ';': {
                ct = getOperatorAndComments();
-               if(ct != null) tokens.add(ct);
+               if(ct != null) tokens.add(ct); //pushing operators
             } break;
 
             case '0':
@@ -270,7 +261,7 @@ public class lex {
             case '8':
             case '9': {
                ct = getDigits();
-               if(ct != null) tokens.add(ct);
+               if(ct != null) tokens.add(ct); //pusing numbers
             } break;
 
             //Handling some whitesapces (BLANKS , TABS , NEWLINES)...
@@ -294,11 +285,11 @@ public class lex {
                         else if(ct.lexeme.equals("else") || ct.lexeme.equals("else ")) {ct.attribValue = "4"; ct.tokenName = TOKEN_NAME.ELSE; }
                         else if(ct.lexeme.equals("do") || ct.lexeme.equals("do ")) {ct.attribValue = "5"; ct.tokenName = TOKEN_NAME.DO; }
                         else if(ct.lexeme.equals("while") || ct.lexeme.equals("while ")) {ct.attribValue = "6"; ct.tokenName = TOKEN_NAME.WHILE; }
-                        else { //we do this here so we do not put keyword in symbol table
+                        else { //we do this here so we do not put keyword in symbol table ... since already pushed
                            symbolTable.push(ct.tokenName,ct.lexeme);
                            ct.attribCounter = symbolTable.getCurrentAttribCounter();
                         }
-                     } tokens.add(ct);
+                     } tokens.add(ct); //pushing identifiers and string literals
                   } 
                } else { String s = "" + c; invalidTokens.add(new token(s,lineNumber)); } //Error handling invalid lexmes with line number...
             } break;
@@ -309,31 +300,28 @@ public class lex {
    //This will print all the tokens parsed...
    public void printTokens() {
 
-   //Print tokens if founded...
-   if(tokens.size() != 0) {
-      System.out.println("");
-      for(token t : tokens) t.print();
-   }
-
     //Print invalid lexemes if founded...
    if(invalidTokens.size() != 0) {
-      System.out.println("\n=== INVALID LEXEMES FOUNDED ===\n");
+      System.out.println("\n=== INVALID LEXEMES FOUNDED (Kindly fix error for proper output)  ===\n");
       for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.lexeme);
-   }     
-    
-    //Print all comments if founded...
-   if(singlelineComments.size() != 0) {
-      System.out.println("\n=== SINGLE LINE COMMENTS FOUNDED ===\n");
-      for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
-   }     
+   } else {
+      //Print tokens if founded...
+      if(tokens.size() != 0) {
+         System.out.println("");
+         for(token t : tokens) t.print();
+      }
+      //Print all comments if founded...
+      if(singlelineComments.size() != 0) {
+         System.out.println("\n=== SINGLE LINE COMMENTS FOUNDED ===\n");
+         for(token t : singlelineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
+      }     
 
-   //Print all comments if founded...
-   if(multilineComments.size() != 0) {
-      System.out.println("\n=== MULTI LINE COMMENTS FOUNDED ===\n");
-      for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
-   }
-
-   symbolTable.print();
-     
+      //Print all comments if founded...
+      if(multilineComments.size() != 0) {
+         System.out.println("\n=== MULTI LINE COMMENTS FOUNDED ===\n");
+         for(token t : multilineComments) System.out.println("Found Comment @ Line " + t.lineNumber + " : " + t.lexeme);
+      }
+         symbolTable.print();
+      }
    }
 }
