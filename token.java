@@ -1,7 +1,8 @@
 enum TOKEN_NAME {
    RO,OO,AO,
    ID,SL,IN,
-   INT,CHAR,STRING,IF,ELSE,DO,WHILE;
+   INT,CHAR,STRING,IF,ELSE,DO,WHILE,
+   EOF;
 }
 
 public class token {

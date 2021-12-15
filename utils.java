@@ -1,6 +1,7 @@
 import java.io.File;  // Import the File class
 import java.io.FileNotFoundException;  // Import this class to handle errors
 import java.util.Scanner; // Import the Scanner class to read text files
+import java.util.ArrayList;
 
 class InputSource {
    private String source;
@@ -16,7 +17,54 @@ class InputSource {
    public char nextChar() { counter += 1; return source.charAt(counter); }
 }
 
+class LexSource {
+   private ArrayList<token> tokens;
+   private int counter = -1;
+   public LexSource(ArrayList<token> tokens) {
+      this.tokens = tokens;
+   }
+
+   public String nextToken() {
+      counter += 1;
+      token t = tokens.get(counter);
+      switch(t.tokenName) {
+         case OO:
+         case EOF:
+         case AO: {
+            return t.lexeme;
+         }
+      }
+      String tokenType = t.tokenName.toString().toLowerCase();
+      return tokenType;
+   }
+
+   public String getCurrentToken() {
+      token t = tokens.get(counter);
+       switch(t.tokenName) {
+         case OO:
+         case EOF:
+         case AO: {
+            return t.lexeme;
+         }
+      }
+      String tokenType = t.tokenName.toString().toLowerCase();
+      return tokenType;
+   }
+
+   public String getCurrentTokenLexeme() {
+      token t= tokens.get(counter);
+      return t.lexeme;
+   }
+}
+
 public class utils {
+   
+   public static String CharToString(char c) {
+      String s = "";
+      s += c;
+      return s;
+   }
+
    public static String readfile(String pathToFile) {
       String res = "";
       try {

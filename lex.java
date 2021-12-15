@@ -228,7 +228,7 @@ public class lex {
       } return null;
    }
 
-   public void parse() {
+   public boolean parse() {
       token ct = new token();
       while(!inputProgram.isEOF()) {
          switch(inputProgram.nextChar()) {
@@ -289,10 +289,14 @@ public class lex {
                         }
                      } tokens.add(ct); //pushing identifiers and string literals
                   } 
-               } else { String s = "" + c; invalidTokens.add(new token(s,lineNumber)); } //Error handling invalid lexmes with line number...
+               } else { String s = "" + c; invalidTokens.add(new token(s,lineNumber)); return false; } //Error handling invalid lexmes with line number...
             } break;
          }
-      }
+      } return true;
+   }
+
+   public ArrayList<token> getTokens() {
+      return this.tokens;
    }
 
    //This will print all the tokens parsed...
@@ -300,7 +304,7 @@ public class lex {
 
     //Print invalid lexemes if founded...
    if(invalidTokens.size() != 0) {
-      System.out.println("\n=== INVALID LEXEMES FOUNDED (Kindly fix error for proper output)  ===\n");
+      System.out.println("\n=== INVALID LEXEMES FOUNDED (Kindly fix error for proper analysis)  ===\n");
       for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.lexeme);
    } else {
       

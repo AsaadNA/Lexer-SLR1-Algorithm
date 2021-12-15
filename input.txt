@@ -1,6 +1,15 @@
-string name = "Asaad";
-int x = 69;
-//This is a comment@@!!
-if(x > 2) {
-   name = "FUCK";
+int val1 = 21; // to store a value
+int val2;
+int total;
+string purpose = "Calculation"; /* to store a calculation */
+
+if( val1 > 10 )
+{
+   val2 = 5;
 }
+else
+{
+   val2 = 10;
+}
+
+total = (val1 + val2) * val1; 

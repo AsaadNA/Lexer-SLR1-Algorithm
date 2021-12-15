@@ -1,10 +1,8 @@
 import java.util.ArrayList;
 
 class Item {
-   public char state;
-   public char input;
-   public String data;
-   public Item(char state , char input , String data) {
+   public String state,input,data;
+   public Item(String state , String input , String data) {
       this.state = state;
       this.input = input;
       this.data = data;
@@ -12,16 +10,14 @@ class Item {
 }
 
 public class parsetable {
-
+   
    private ArrayList<Item> map = new ArrayList<Item>();
 
-   public void put(Item i) {
-      map.add(new Item(i.state,i.input,i.data));
-   }
-
-   public String get(char state , char input) {
+   public void put(Item i) { map.add(new Item(i.state,i.input,i.data));}
+   public String get(String state , String input) {
       for(Item i : map) {
-         if(i.state == state && i.input == input) return i.data;
+         if(i.state.equals(state) && i.input.equals(input)) return i.data;
       } return null;
    }
+
 }
