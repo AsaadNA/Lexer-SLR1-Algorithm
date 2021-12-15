@@ -23,7 +23,7 @@ public class symboltable {
    }
 
    public void print() {
-      System.out.println("\n\t === Symbol table ===\n");
+      System.out.println("\n====== SYMBOL TABLE ======\n");
       for(token t : table) {
          System.out.println(t.attribCounter + "\t" + t.tokenName + "\t" + "-" + "\t" + t.lexeme);
       }

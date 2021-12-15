@@ -1,14 +1,6 @@
-int val1 = 21; //@NOTE: To Store a value;
-int val2; 
-int total;
-string purpose = "CalculaTion @-_-!"; /* @NOTE: This is to store CalculaTion */
-
-if( val1 > 10)
-{
-   val2 = 5;
+string name = "Asaad";
+int x = 69;
+//This is a comment@@!!
+if(x > 2) {
+   name = "FUCK";
 }
-else
-{
-val2 = 10;
-}
-total = (val1 + val2) * val2;

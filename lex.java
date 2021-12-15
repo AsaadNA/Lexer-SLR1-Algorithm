@@ -1,7 +1,5 @@
 import java.util.ArrayList;
 
-/*TODO: Add an offset counter for any invalid lexeme */
-
 public class lex {
 
    private int lineNumber = 0;
@@ -15,7 +13,7 @@ public class lex {
    private symboltable symbolTable = new symboltable();
 
    public lex(String data,boolean isFile) {
-      inputProgram = isFile ? new InputSource(utils.readfile(data)) : new InputSource(data);
+      inputProgram = isFile ? new InputSource(utils.readfile(data),true) : new InputSource(data,true);
    }
 
    private boolean isDigit(char c) { return (c >= '0' && c <= '9'); }
@@ -305,9 +303,10 @@ public class lex {
       System.out.println("\n=== INVALID LEXEMES FOUNDED (Kindly fix error for proper output)  ===\n");
       for(token t : invalidTokens) System.out.println("Invalid LEXEME FOUND @ Line " + t.lineNumber + " : " + t.lexeme);
    } else {
+      
+      System.out.println("\n====== PRINTING TOKENS ======\n");
       //Print tokens if founded...
       if(tokens.size() != 0) {
-         System.out.println("");
          for(token t : tokens) t.print();
       }
       //Print all comments if founded...

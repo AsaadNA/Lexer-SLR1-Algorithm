@@ -5,9 +5,9 @@ import java.util.Scanner; // Import the Scanner class to read text files
 class InputSource {
    private String source;
    private int counter = -1;
-   public InputSource(String source) {
+   public InputSource(String source , boolean isFile) {
       this.source = source;
-      if(this.source.charAt(source.length()-1) != ' ') { this.source += ' '; this.source += ' ';this.source += ' '; this.source += ' '; }
+      if(isFile) {if(this.source.charAt(source.length()-1) != ' ') { this.source += ' '; this.source += ' ';this.source += ' '; this.source += ' '; } }
    }
 
    public boolean isEOF() { return (counter == source.length()-1); }
